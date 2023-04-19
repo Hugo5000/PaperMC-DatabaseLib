@@ -1,4 +1,4 @@
-# GUILib
+# DatabaseLib
 
 ```java
 public class ExamplePlugin extends JavaPlugin {
