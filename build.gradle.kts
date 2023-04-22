@@ -28,12 +28,12 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT")
 
     // database stuff
-    compileOnly("mysql:mysql-connector-java:8.0.32")
-    compileOnly("org.xerial:sqlite-jdbc:3.40.1.0")
+    implementation("mysql:mysql-connector-java:8.0.32")
+    implementation("org.xerial:sqlite-jdbc:3.40.1.0")
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_17
-    java.targetCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     withSourcesJar()
     withJavadocJar()
 }
