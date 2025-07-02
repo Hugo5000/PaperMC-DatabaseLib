@@ -30,6 +30,8 @@ dependencies {
     // database stuff
     implementation("mysql:mysql-connector-java:8.0.32")
     implementation("org.xerial:sqlite-jdbc:3.40.1.0")
+    implementation("com.mysql:mysql-connector-j:9.3.0")
+    implementation("org.xerial:sqlite-jdbc:3.50.2.0")
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_17
