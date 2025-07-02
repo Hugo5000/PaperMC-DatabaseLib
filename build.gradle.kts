@@ -4,6 +4,7 @@ plugins {
     id("signing")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.tddworks.central-portal-publisher") version "0.0.5"
 }
 
 val ossrhUsername: String by project
@@ -28,10 +29,9 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT")
 
     // database stuff
-    implementation("mysql:mysql-connector-java:8.0.32")
-    implementation("org.xerial:sqlite-jdbc:3.40.1.0")
     implementation("com.mysql:mysql-connector-j:9.3.0")
     implementation("org.xerial:sqlite-jdbc:3.50.2.0")
+    implementation("com.zaxxer:HikariCP:6.3.0")
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -129,4 +129,14 @@ publishing {
 
 signing {
     sign(publishing.publications["mavenJava"])
+}
+
+sonatypePortalPublisher {
+    authentication {
+        username = ossrhUsername
+        password = ossrhPassword
+    }
+    settings {
+        autoPublish = false
+    }
 }

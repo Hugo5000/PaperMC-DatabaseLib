@@ -1,17 +1,20 @@
 package at.hugob.plugin.library.database;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import javax.sql.DataSource;
+import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
  * the common code for databases
  */
-public abstract class AbstractDatabase<T extends JavaPlugin> {
-    private final DataSource dataSource;
+public abstract class AbstractDatabase<T extends JavaPlugin> implements Closeable {
+    private final HikariDataSource dataSource;
 
     /**
      * the plugin who initiated the database, mostly used for logging
@@ -30,7 +33,9 @@ public abstract class AbstractDatabase<T extends JavaPlugin> {
     public AbstractDatabase(@NotNull final T plugin, @NotNull final DataSource dataSource, @NotNull String tablePrefix) {
         this.tablePrefix = tablePrefix;
         this.plugin = plugin;
-        this.dataSource = dataSource;
+        var config = new HikariConfig();
+        config.setDataSource(dataSource);
+        this.dataSource = new HikariDataSource(config);
     }
 
     /**
@@ -48,4 +53,9 @@ public abstract class AbstractDatabase<T extends JavaPlugin> {
      * This needs to be executed on your own!
      */
     abstract protected void createTables();
+
+    @Override
+    public void close() {
+        dataSource.close();
+    }
 }
