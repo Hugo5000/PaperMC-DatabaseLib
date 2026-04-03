@@ -14,6 +14,8 @@ import java.util.logging.Level;
 
 /**
  * the common code for databases
+ *
+ * @param <T> the plugin class that uses this database
  */
 public abstract class AbstractDatabase<T extends JavaPlugin> implements Closeable {
     private final HikariDataSource dataSource;
@@ -28,6 +30,8 @@ public abstract class AbstractDatabase<T extends JavaPlugin> implements Closeabl
     protected final String tablePrefix;
 
     /**
+     * Creates a new AbstractDatabase
+     *
      * @param plugin      The plugin that initiates the database, mostly used for logging
      * @param dataSource  The SQL DataSource that is used to interact with the Database
      * @param tablePrefix The general Table prefix used for SQL Tables
@@ -67,14 +71,27 @@ public abstract class AbstractDatabase<T extends JavaPlugin> implements Closeabl
         dataSource.close();
     }
 
+    /**
+     * Provides a single prepared statement, which must be manually executed
+     *
+     * @param query                     the SQL statement to prepare
+     * @param preparedStatementConsumer a consumer that provides the statement
+     * @param errorMessage              the message that should be printed if something goes wrong on the SQL side
+     */
     protected final void prepareStatement(String query, ISQLConsumer<PreparedStatement> preparedStatementConsumer, String errorMessage) {
         useDatabase(con -> {
-            try (var statement = con.prepareStatement(query)){
+            try (var statement = con.prepareStatement(query)) {
                 preparedStatementConsumer.accept(statement);
             }
         }, errorMessage);
     }
 
+    /**
+     * Provides a single transaction connection, where you can prepare multiple statements if you want to
+     *
+     * @param consumer     provides you with the connection to execute the statements on.
+     * @param errorMessage the message that should be printed if something goes wrong on the SQL side
+     */
     protected final void executeTransaction(ISQLConsumer<Connection> consumer, String errorMessage) {
         useDatabase(con -> {
             con.setAutoCommit(false);
@@ -102,5 +119,11 @@ public abstract class AbstractDatabase<T extends JavaPlugin> implements Closeabl
         }
     }
 
+    /**
+     * Whether a connection should be retried
+     *
+     * @param errorCode the error code from the SQLException
+     * @return true if it should be retried
+     */
     protected abstract boolean shouldRetry(int errorCode);
 }

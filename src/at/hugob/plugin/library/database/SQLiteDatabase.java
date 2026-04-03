@@ -11,6 +11,8 @@ import java.sql.SQLException;
 
 /**
  * An implementation of the AbstractDatabase to handle SQLite Databases
+ *
+ * @param <T> the plugin class that uses this database
  */
 public abstract class SQLiteDatabase<T extends JavaPlugin> extends AbstractDatabase<T> {
     /**

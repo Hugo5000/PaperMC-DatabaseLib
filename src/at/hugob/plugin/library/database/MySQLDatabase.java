@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * An implementation of the AbstractDatabase to handle MySQL Databases
+ *
+ * @param <T> the plugin class that uses this database
  */
 public abstract class MySQLDatabase<T extends JavaPlugin> extends AbstractDatabase<T> {
 
