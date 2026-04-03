@@ -1,8 +1,10 @@
 package at.hugob.plugin.library.database;
 
+import com.zaxxer.hikari.HikariConfig;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.sqlite.SQLiteDataSource;
+import org.sqlite.SQLiteErrorCode;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -41,8 +43,24 @@ public abstract class SQLiteDatabase<T extends JavaPlugin> extends AbstractDatab
      */
     @Override
     protected Connection getConnection() throws SQLException {
-        var connection = super.getConnection();
-        connection.prepareStatement("pragma foreign_keys = ON").executeUpdate();
-        return connection;
+        return super.getConnection();
+    }
+
+    @Override
+    protected final void setupHikariConfig(HikariConfig config) {
+        config.setDriverClassName("org.sqlite.JDBC");
+
+        config.setPoolName(plugin.getName() + "-SQLite-HikariPool");
+
+        config.setMaximumPoolSize(1);
+
+        config.addDataSourceProperty("foreign_keys", "true");
+        config.addDataSourceProperty("journal_mode", "WAL");
+        config.addDataSourceProperty("synchronous", "NORMAL");
+    }
+
+    @Override
+    protected final boolean shouldRetry(int errorCode) {
+        return errorCode == SQLiteErrorCode.SQLITE_BUSY.code;
     }
 }

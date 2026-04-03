@@ -8,7 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.sql.DataSource;
 import java.io.Closeable;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.logging.Level;
 
 /**
  * the common code for databases
@@ -53,9 +55,52 @@ public abstract class AbstractDatabase<T extends JavaPlugin> implements Closeabl
      * This needs to be executed on your own!
      */
     abstract protected void createTables();
+    /**
+     * Sets up the Hikari Config for the specific database configurations
+     *
+     * @param config The Created Config
+     */
+    abstract protected void setupHikariConfig(HikariConfig config);
 
     @Override
     public void close() {
         dataSource.close();
     }
+
+    protected final void prepareStatement(String query, ISQLConsumer<PreparedStatement> preparedStatementConsumer, String errorMessage) {
+        useDatabase(con -> {
+            try (var statement = con.prepareStatement(query)){
+                preparedStatementConsumer.accept(statement);
+            }
+        }, errorMessage);
+    }
+
+    protected final void executeTransaction(ISQLConsumer<Connection> consumer, String errorMessage) {
+        useDatabase(con -> {
+            con.setAutoCommit(false);
+            try {
+                consumer.accept(con);
+                con.commit();
+            } catch (Exception e) {
+                con.rollback();
+                throw e; // Rethrow so it can be handled outside.
+            } finally {
+                con.setAutoCommit(true);
+            }
+        }, errorMessage);
+    }
+
+    private void useDatabase(ISQLConsumer<Connection> consumer, String errorMessage) {
+        try (Connection con = getConnection()) {
+            consumer.accept(con);
+        } catch (SQLException e) {
+            if (shouldRetry(e.getErrorCode())) {
+                useDatabase(consumer, errorMessage);
+            } else {
+                plugin.getLogger().log(Level.SEVERE, errorMessage, e);
+            }
+        }
+    }
+
+    protected abstract boolean shouldRetry(int errorCode);
 }

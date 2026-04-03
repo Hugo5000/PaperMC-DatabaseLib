@@ -1,6 +1,8 @@
 package at.hugob.plugin.library.database;
 
+import com.mysql.cj.exceptions.MysqlErrorNumbers;
 import com.mysql.cj.jdbc.MysqlDataSource;
+import com.zaxxer.hikari.HikariConfig;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,5 +44,29 @@ public abstract class MySQLDatabase<T extends JavaPlugin> extends AbstractDataba
         dataSource.setServerName(ip);
         dataSource.setPort(port);
         return dataSource;
+    }
+
+    @Override
+    protected final void setupHikariConfig(HikariConfig config) {
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        config.setPoolName(plugin.getName() + "-MySQL-HikariPool");
+
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(2);
+
+        config.setMaxLifetime(1800000);
+        config.setConnectionTimeout(5000);
+
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty("useServerPrepStmts", "true");
+
+        config.addDataSourceProperty("allowPublicKeyRetrieval", "true");
+    }
+
+    @Override
+    protected final boolean shouldRetry(int errorCode) {
+        return errorCode == MysqlErrorNumbers.ER_LOCK_DEADLOCK;
     }
 }
